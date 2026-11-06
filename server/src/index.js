@@ -31,8 +31,8 @@ app.use((err, req, res, next) => {
   res.status(status).json({ error });
 });
 
-const server = app.listen(port, '127.0.0.1', () => {
-  console.log(`TravelBuddy API listening at http://127.0.0.1:${port}`);
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`TravelBuddy API listening on 0.0.0.0:${port}`);
 });
 
 server.on('error', (err) => {

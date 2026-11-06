@@ -44,7 +44,7 @@ Parser errors occur before route lookup, so invalid JSON can produce 400 on an o
 
 ## Configuration
 
-`PORT` is optional, defaults to `3000`, and must be a decimal integer from 1 to 65535. The start command loads `server/.env` if present, using Node's built-in loader. Terminal environment variables take precedence. The server listens on `127.0.0.1` for local checks only.
+`PORT` is optional locally, defaults to `3000`, and must be a decimal integer from 1 to 65535. The start command loads `server/.env` if present, using Node's built-in loader. Environment variables take precedence. On Render, use the platform's supplied `PORT`. The server binds to `0.0.0.0` so the hosting network can reach it. Local clients still use `127.0.0.1`; public clients use the actual assigned HTTPS URL. The response shapes are unchanged.
 
 ## Future plans - not implemented or verified
 

@@ -86,4 +86,15 @@ Expect 200/health JSON and 404/error JSON respectively, as specified in the cont
 
 ## Outside today's verification
 
+## Day 2 local preparation - 2026-11-06
+
+- Starting commit: `24dd06068a5d82b92817147f7f748b83cc39137d` on `main`. No tracked changes before this work; two original PDFs remain untracked and untouched. No deployment configuration or applicable project instruction file found.
+- Before editing, started with `npm start` and asserted exact 200 health JSON and 404 fallback JSON. Stopped only that test session.
+- Changed only the listening interface in source from `127.0.0.1` to `0.0.0.0`, including the startup message. Existing port configuration and package scripts reused.
+- Ran `node --check src/index.js`, then documented startup with `PORT=10000`. Observed `TravelBuddy API listening on 0.0.0.0:10000`.
+- Verified port 10000 was bound on the wildcard interface (a competing wildcard bind failed with EADDRINUSE). Asserted HTTP status, JSON content type, and exact parsed bodies for `/health` and `/does-not-exist`.
+- Observed local request times: health 43 ms; unknown endpoint 4 ms. These are single laptop measurements, not public cloud measurements or guarantees.
+- Stopped the test session. No real `.env` created, dependencies added, or unrelated process stopped.
+- Render connection verified by workspace listing; Shreya confirmed `My Workspace`. Service listing returned no existing services. Public service creation, actual Node patch/source commit, HTTPS checks/timing, deployment/runtime log inspection, and phone/mobile-data test are pending.
+
 Database, authentication, OTP/application email delivery, Socket.IO, deployment, mobile builds, phone access, and two-device tests are not implemented or tested. The working inbox/domain and collaborator agreement are Shreya's confirmations. No message or handoff has been sent to Suryansh. His work must wait for Shreya's explicit handoff.

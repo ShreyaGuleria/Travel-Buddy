@@ -2,7 +2,7 @@
 
 TravelBuddy is Shreya and Suryansh's campus travel coordination project, initially for Chitkara University students. The planned app helps students find compatible trip plans and coordinate travelling together; it does not book transport.
 
-## Day 1 status
+## Current status
 
 Implemented: a local Express API with JSON body parsing, a health endpoint, consistent JSON error responses, and startup/error logging. No database, authentication, OTP delivery, Socket.IO, deployment, or mobile application is implemented here.
 
@@ -52,7 +52,7 @@ An environment variable is a setting passed to a running program. `npm start` us
 npm start
 ```
 
-Expect `TravelBuddy API listening at http://127.0.0.1:3000` with the chosen port. Leave this terminal running. Stop the server with Ctrl+C. The API binds only to your computer's loopback address (`127.0.0.1`); phone access is outside this baseline.
+Expect `TravelBuddy API listening on 0.0.0.0:3000` with the chosen port. Leave this terminal running. Stop the server with Ctrl+C. Use `http://127.0.0.1:3000` for local requests. The `0.0.0.0` binding accepts traffic on all IPv4 interfaces, as required by the host; it is not a public URL. On your laptop it can also permit network access if your firewall allows it.
 
 If the port is already occupied (`EADDRINUSE`), stop the other service or choose a different `PORT`. Invalid configured ports stop startup with a clear error.
 
@@ -121,3 +121,43 @@ For each request, middleware runs in registration order: JSON parser -> matching
 Optional predictions: what happens if the 404 handler is registered first? Which port wins when `.env` and the terminal both define `PORT`? Hands-on exercise: start, request `/health` and `/healthz`, stop with Ctrl+C, start again, and confirm `/health` still responds. Then explain the two status codes in your own words.
 
 Only the health route, unknown-route fallback, JSON parser, and error handling exist today. The university email domain `chitkara.edu.in` and a working university test inbox were confirmed by Shreya; no domain restriction or application email delivery has been implemented or tested.
+
+## Day 2 deployment: Render Free
+
+Status: local preparation verified; public deployment and mobile-data check pending. Public base URL, health URL, and deployed commit are not yet verified.
+
+Local hosting ends when the program on your laptop stops. Cloud hosting runs a separate copy on Render. HTTPS encrypts traffic to Render using its managed certificate; Render forwards traffic to the Node HTTP server. WebSockets keep a connection open for two-way messages, making this service model suitable for later Socket.IO work. Socket.IO is not installed or tested.
+
+| Service setting | Value |
+| --- | --- |
+| Repository / branch | `https://github.com/ShreyaGuleria/Travel-Buddy` / `main` |
+| Type / runtime / plan | Web Service / Node / Free |
+| Region | Singapore |
+| Root directory | Repository root; commands target `server/` explicitly |
+| Build command | `npm --prefix server ci` |
+| Start command | `npm --prefix server start` |
+| Node version | 24.x via package engines; deployed patch pending logs |
+| Environment | `NODE_ENV=production`; `PORT` supplied by Render |
+| Secrets / real `.env` | None required; never upload a real `.env` |
+
+The integration does not expose a root-directory field. npm's `--prefix server` targets the backend package, and the startup script runs there, so `src/index.js` and optional `.env` resolve inside `server/`. Equivalent dashboard settings are Root Directory `server`, Build `npm ci`, Start `npm start`. Use one approach, not both. No Dockerfile or `render.yaml` is needed.
+
+Build installs the locked dependencies; there is no compilation. Startup runs the persistent server on the host-assigned port. Environment settings belong in the provider's Environment page; secret values must never be shared in chat or committed.
+
+### Logs and updates
+
+In the [Render dashboard](https://dashboard.render.com/), open the service. Deploy details show build output and source commit; Logs shows runtime stdout/stderr. Provider readiness defaults to TCP unless an HTTP health-check path is set. `/health` is also tested separately; you can set it under Settings -> Health Checks.
+
+Automatic deployment requires a connected GitHub provider and Auto-Deploy On Commit. Public-repository-URL services require manual deployment. Check the actual service settings rather than assuming a push redeploys it. To redeploy: Deploys -> Manual Deploy -> Deploy latest commit. Clear the build cache only when troubleshooting requires it.
+
+After deployment, test the actual public HTTPS base URL plus `/health` (200 and exact health JSON) and `/does-not-exist` (404 and error JSON). Do not guess the public URL from the service name.
+
+Hands-on phone check, pending user confirmation: stop any local server, disable phone Wi-Fi, enable mobile data, and open the public HTTPS `/health` URL. Confirm that the expected JSON appears. This demonstrates access independently of the laptop.
+
+### Verified provider limits, checked 2026-11-06
+
+Render's Hobby workspace and Free web instance cost $0. Free services sleep after 15 idle minutes; documented wake time is around one minute, not a performance guarantee. The workspace receives 750 running hours/month. Hobby pricing lists 5 GB outbound bandwidth; build-pipeline docs list 500 Starter minutes/month. Verify the account's Billing page because published allowance pages have varied. Exhausted hours suspend services until the next month. Without a payment method, bandwidth exhaustion suspends free services and build-minute exhaustion blocks builds; with billing enabled, overages can cost money. Do not add a payment method, accept a trial, or choose a paid plan without approval. Signup/card-verification requirements for this account remain unverified.
+
+No fixed expiry is stated for Free web services; the separate 30-day Free Postgres expiry is irrelevant here. Free services can restart and lose local files. WebSocket connections must handle reconnects after sleep/redeploy; actual Socket.IO behavior is future work.
+
+Official sources: [free limits](https://render.com/docs/free), [pricing](https://render.com/pricing), [pipeline minutes](https://render.com/docs/build-pipeline), [web services and HTTPS](https://render.com/docs/web-services), [WebSockets](https://render.com/docs/websocket), [Node versions](https://render.com/docs/node-version), [deploys](https://render.com/docs/deploys), [logs](https://render.com/docs/logging).
