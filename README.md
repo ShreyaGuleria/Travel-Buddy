@@ -4,7 +4,7 @@ TravelBuddy is Shreya and Suryansh's campus travel coordination project, initial
 
 ## Current status
 
-Implemented: a local Express API with JSON body parsing, a health endpoint, consistent JSON error responses, and startup/error logging. No database, authentication, OTP delivery, Socket.IO, deployment, or mobile application is implemented here.
+Implemented: an Express API with JSON body parsing, a health endpoint, consistent JSON error responses, and startup/error logging, deployed on Render Free. No database, authentication, OTP delivery, Socket.IO, or mobile application is implemented here.
 
 Shreya owns this backend/docs stage. Suryansh will create `mobile/` after the agreed handoff; that directory is deliberately absent today. Repository: https://github.com/ShreyaGuleria/Travel-Buddy/.
 
@@ -124,7 +124,12 @@ Only the health route, unknown-route fallback, JSON parser, and error handling e
 
 ## Day 2 deployment: Render Free
 
-Status: local preparation verified; public deployment and mobile-data check pending. Public base URL, health URL, and deployed commit are not yet verified.
+Status: deployed and publicly verified on 2026-11-06. Shreya also confirmed the health endpoint works over phone mobile data with Wi-Fi disabled and local test servers stopped.
+
+- Public API base: [https://travelbuddy-api-uvpg.onrender.com](https://travelbuddy-api-uvpg.onrender.com)
+- Health: [GET /health](https://travelbuddy-api-uvpg.onrender.com/health)
+- [Service dashboard](https://dashboard.render.com/web/srv-dbn0avjm8hqs73bji2bg)
+- Verified deployed source: `78499d04f0b8b05d564e9e2090c54e46107242fb`; deploy `dep-dbn0b0bm8hqs73bji3gg`, reported `live` by Render.
 
 Local hosting ends when the program on your laptop stops. Cloud hosting runs a separate copy on Render. HTTPS encrypts traffic to Render using its managed certificate; Render forwards traffic to the Node HTTP server. WebSockets keep a connection open for two-way messages, making this service model suitable for later Socket.IO work. Socket.IO is not installed or tested.
 
@@ -146,17 +151,24 @@ Build installs the locked dependencies; there is no compilation. Startup runs th
 
 ### Logs and updates
 
-In the [Render dashboard](https://dashboard.render.com/), open the service. Deploy details show build output and source commit; Logs shows runtime stdout/stderr. Provider readiness defaults to TCP unless an HTTP health-check path is set. `/health` is also tested separately; you can set it under Settings -> Health Checks.
+Open the linked service dashboard. Deploy details show build output and source commit; Logs shows runtime stdout/stderr. The log integration returned HTTP 503 (`log retrieval is currently unavailable`) on initial and separate build/runtime retries, so these logs and the actual deployed Node patch could not be inspected. Check them in the dashboard when available; no app failure is inferred from a log-service outage. The service has no HTTP health-check path configured and uses default TCP readiness. The public `/health` response was verified separately; you can set it under Settings -> Health Checks.
 
-Automatic deployment requires a connected GitHub provider and Auto-Deploy On Commit. Public-repository-URL services require manual deployment. Check the actual service settings rather than assuming a push redeploys it. To redeploy: Deploys -> Manual Deploy -> Deploy latest commit. Clear the build cache only when troubleshooting requires it.
+The service API reports `autoDeploy=yes`, trigger `commit`, branch `main`. Automatic deployment requires a connected GitHub provider; public-repository-URL services require manual deployment. The configured on-commit behavior has not yet been exercised with an unskipped post-creation push. This results-only commit uses `[skip render]` to preserve the verified live source. To redeploy: Deploys -> Manual Deploy -> Deploy latest commit. Clear the build cache only when troubleshooting requires it.
 
 After deployment, test the actual public HTTPS base URL plus `/health` (200 and exact health JSON) and `/does-not-exist` (404 and error JSON). Do not guess the public URL from the service name.
 
-Hands-on phone check, pending user confirmation: stop any local server, disable phone Wi-Fi, enable mobile data, and open the public HTTPS `/health` URL. Confirm that the expected JSON appears. This demonstrates access independently of the laptop.
+Automated public HTTPS assertions passed: `/health` returned 200 and exact health JSON (1,114 ms), `/does-not-exist` returned 404 and exact error JSON (159 ms), and a repeated health check passed (155 ms). These are single observations, not guarantees; idle cold-start timing was not measured. Shreya confirmed the phone/mobile-data exercise passed. To reproduce, stop any local server, disable phone Wi-Fi, enable mobile data, and open the linked health URL.
+
+You can also repeat the public checks from a terminal:
+
+```powershell
+curl.exe -i https://travelbuddy-api-uvpg.onrender.com/health
+curl.exe -i https://travelbuddy-api-uvpg.onrender.com/does-not-exist
+```
 
 ### Verified provider limits, checked 2026-11-06
 
-Render's Hobby workspace and Free web instance cost $0. Free services sleep after 15 idle minutes; documented wake time is around one minute, not a performance guarantee. The workspace receives 750 running hours/month. Hobby pricing lists 5 GB outbound bandwidth; build-pipeline docs list 500 Starter minutes/month. Verify the account's Billing page because published allowance pages have varied. Exhausted hours suspend services until the next month. Without a payment method, bandwidth exhaustion suspends free services and build-minute exhaustion blocks builds; with billing enabled, overages can cost money. Do not add a payment method, accept a trial, or choose a paid plan without approval. Signup/card-verification requirements for this account remain unverified.
+Render's Hobby workspace and Free web instance cost $0. The created service is confirmed `plan=free`; no paid resources or trials were selected and no payment details were supplied. Existing account billing/payment-method state was not inspected. Free services sleep after 15 idle minutes; documented wake time is around one minute, not a performance guarantee. The workspace receives 750 running hours/month. Hobby pricing lists 5 GB outbound bandwidth; build-pipeline docs list 500 Starter minutes/month. Verify the account's Billing page because published allowance pages have varied. Exhausted hours suspend services until the next month. Without a payment method, bandwidth exhaustion suspends free services and build-minute exhaustion blocks builds; with billing enabled, overages can cost money. Do not add a payment method, accept a trial, or choose a paid plan without approval.
 
 No fixed expiry is stated for Free web services; the separate 30-day Free Postgres expiry is irrelevant here. Free services can restart and lose local files. WebSocket connections must handle reconnects after sleep/redeploy; actual Socket.IO behavior is future work.
 

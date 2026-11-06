@@ -48,7 +48,11 @@ Parser errors occur before route lookup, so invalid JSON can produce 400 on an o
 
 ## Future plans - not implemented or verified
 
-The broader project proposes database storage, email OTP authentication, trip creation and matching, join requests, and participant chat. Deployment, Socket.IO, and mobile device connectivity also remain future work. There are no usable endpoints or socket events for them yet; payloads must be agreed before implementation.
+The broader project proposes database storage, email OTP authentication, trip creation and matching, join requests, and participant chat. Socket.IO and mobile app connectivity remain future work. There are no usable endpoints or socket events for them yet; payloads must be agreed before implementation.
+
+## Day 2 deployed contract
+
+The same health and JSON 404 shapes are verified at `https://travelbuddy-api-uvpg.onrender.com`, with no path prefix. Public `/health` returned HTTP 200 and the exact specified body; an unknown path returned HTTP 404 and the specified fallback. Render confirms source `78499d04f0b8b05d564e9e2090c54e46107242fb` is live. Shreya confirmed phone access over mobile data. Free-tier sleeping can delay the first request; this is not an availability guarantee. See results for observed timing and the provider log-retrieval limitation.
 
 Planning rules from the proposal: joining initially creates a pending request; creator acceptance grants participation and consumes a seat. Trip times are intended to use absolute UTC timestamps, displayed in Asia/Kolkata. These are future product rules, not behavior of this server.
 

@@ -84,8 +84,6 @@ curl.exe -i http://127.0.0.1:3000/does-not-exist
 
 Expect 200/health JSON and 404/error JSON respectively, as specified in the contract. README includes an assertion command to check both automatically. For a configuration exercise, stop the server, copy `.env.example` to `.env` only if `.env` does not already exist, set `PORT=3001`, restart, and request `http://127.0.0.1:3001/health`.
 
-## Outside today's verification
-
 ## Day 2 local preparation - 2026-11-06
 
 - Starting commit: `24dd06068a5d82b92817147f7f748b83cc39137d` on `main`. No tracked changes before this work; two original PDFs remain untracked and untouched. No deployment configuration or applicable project instruction file found.
@@ -95,6 +93,20 @@ Expect 200/health JSON and 404/error JSON respectively, as specified in the cont
 - Verified port 10000 was bound on the wildcard interface (a competing wildcard bind failed with EADDRINUSE). Asserted HTTP status, JSON content type, and exact parsed bodies for `/health` and `/does-not-exist`.
 - Observed local request times: health 43 ms; unknown endpoint 4 ms. These are single laptop measurements, not public cloud measurements or guarantees.
 - Stopped the test session. No real `.env` created, dependencies added, or unrelated process stopped.
-- Render connection verified by workspace listing; Shreya confirmed `My Workspace`. Service listing returned no existing services. Public service creation, actual Node patch/source commit, HTTPS checks/timing, deployment/runtime log inspection, and phone/mobile-data test are pending.
+- Render connection verified by workspace listing; Shreya confirmed `My Workspace`. Service listing returned no existing services before creation.
 
-Database, authentication, OTP/application email delivery, Socket.IO, deployment, mobile builds, phone access, and two-device tests are not implemented or tested. The working inbox/domain and collaborator agreement are Shreya's confirmations. No message or handoff has been sent to Suryansh. His work must wait for Shreya's explicit handoff.
+## Day 2 public deployment evidence - 2026-11-06
+
+- Committed and normally pushed task-only changes as `78499d04f0b8b05d564e9e2090c54e46107242fb`. Exact staged-file allowlist and basic credential-pattern review passed. Original PDFs were excluded; no real `.env`, dependency folders, or generated cache staged.
+- Created service `srv-dbn0avjm8hqs73bji2bg`, `travelbuddy-api`, in confirmed workspace `My Workspace`. The response confirms Node runtime, Singapore, one Free instance, repository/branch `ShreyaGuleria/Travel-Buddy` / `main`, root `""` (repository), build `npm --prefix server ci`, start `npm --prefix server start`, and nonsecret `NODE_ENV=production`. Render supplies `PORT`; no secret environment variables are needed.
+- Public base URL: https://travelbuddy-api-uvpg.onrender.com ; health URL: https://travelbuddy-api-uvpg.onrender.com/health . Dashboard: https://dashboard.render.com/web/srv-dbn0avjm8hqs73bji2bg .
+- Deployment `dep-dbn0b0bm8hqs73bji3gg` progressed from `build_in_progress` to `live`. The deployment API confirms exact source commit `78499d04f0b8b05d564e9e2090c54e46107242fb`. Creation accepted only the Free plan; no paid plan/trial or payment information supplied. Existing account billing state was not inspected.
+- Automated real HTTPS requests from this computer (local test servers stopped): health HTTP 200 with exact parsed `{"status":"ok","service":"travelbuddy-api"}` and JSON content type; observed 1,114 ms. Unknown path HTTP 404 with exact `{"error":"not_found"}` and JSON content type; 159 ms. Repeated health HTTP 200 with exact JSON; 155 ms. These observations are not promised performance, and an idle cold start was not measured.
+- User-confirmed check: Shreya reported the public health link works on her phone over mobile data, following the Wi-Fi-off/local-server-stopped instructions. This is her confirmation, not an automated device test or evidence of a mobile app build.
+- Log inspection attempted three times: initial unfiltered request, then separate build and application queries. Each failed with HTTP 503 `failed to query loki: log retrieval is currently unavailable`. Logs and actual deployed Node patch remain unverified. Configuration requests Node 24.x through package engines; do not claim a specific observed cloud patch. Use the service's Deploys/build details and Logs views to inspect once retrieval recovers.
+- Service details confirm `autoDeploy=yes`, trigger `commit`, branch `main`; unskipped post-creation push behavior not exercised. Public-repository cloning alone does not prove a connected GitHub provider. Documentation-only publication uses `[skip render]` to preserve the live verified source; no duplicate deployment manually triggered.
+- No HTTP provider health-check path is configured (empty field); default TCP readiness is in use. `/health` was checked directly over HTTPS. No local servers or temporary test files remain.
+
+## Remaining scope and limitations
+
+Database, authentication, OTP/application email delivery, Socket.IO, mobile builds, and two-device app tests are not implemented or tested. Free-tier sleep/reconnect behavior, exact account usage allowances/payment-method state, and actual cloud Node patch remain unverified. The working inbox/domain and collaborator agreement are Shreya's confirmations. No message or handoff has been sent to Suryansh. His work must wait for Shreya's explicit handoff.
