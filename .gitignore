@@ -1,0 +1,18 @@
+# Installed dependencies
+node_modules/
+.npm-cache/
+
+# Private environment settings; keep safe examples
+.env
+.env.*
+!.env.example
+
+# Logs and generated output
+*.log
+logs/
+dist/
+build/
+coverage/
+.expo/
+
+# Dependency lockfiles are intentionally NOT ignored.
