@@ -120,7 +120,7 @@ For each request, middleware runs in registration order: JSON parser -> matching
 
 Optional predictions: what happens if the 404 handler is registered first? Which port wins when `.env` and the terminal both define `PORT`? Hands-on exercise: start, request `/health` and `/healthz`, stop with Ctrl+C, start again, and confirm `/health` still responds. Then explain the two status codes in your own words.
 
-Only the health route, unknown-route fallback, JSON parser, and error handling exist today. The university email domain `chitkara.edu.in` and a working university test inbox were confirmed by Shreya; no domain restriction or application email delivery has been implemented or tested.
+The HTTP baseline and optional Socket.IO spike below are implemented. The university email domain `chitkara.edu.in` and a working university test inbox were confirmed by Shreya; no domain restriction or application email delivery has been implemented or tested.
 
 ## Day 2 deployment: Render Free
 
@@ -131,7 +131,7 @@ Status: deployed and publicly verified on 2026-11-06. Shreya also confirmed the 
 - [Service dashboard](https://dashboard.render.com/web/srv-dbn0avjm8hqs73bji2bg)
 - Verified deployed source: `78499d04f0b8b05d564e9e2090c54e46107242fb`; deploy `dep-dbn0b0bm8hqs73bji3gg`, reported `live` by Render.
 
-Local hosting ends when the program on your laptop stops. Cloud hosting runs a separate copy on Render. HTTPS encrypts traffic to Render using its managed certificate; Render forwards traffic to the Node HTTP server. WebSockets keep a connection open for two-way messages, making this service model suitable for later Socket.IO work. Socket.IO is not installed or tested.
+Local hosting ends when the program on your laptop stops. Cloud hosting runs a separate copy on Render. HTTPS encrypts traffic to Render using its managed certificate; Render forwards traffic to the Node HTTP server. WebSockets keep a connection open for two-way messages. The later Week 1 connectivity spike below now tests Socket.IO on this service; production chat remains future work.
 
 | Service setting | Value |
 | --- | --- |
@@ -170,11 +170,13 @@ curl.exe -i https://travelbuddy-api-uvpg.onrender.com/does-not-exist
 
 Render's Hobby workspace and Free web instance cost $0. The created service is confirmed `plan=free`; no paid resources or trials were selected and no payment details were supplied. Existing account billing/payment-method state was not inspected. Free services sleep after 15 idle minutes; documented wake time is around one minute, not a performance guarantee. The workspace receives 750 running hours/month. Hobby pricing lists 5 GB outbound bandwidth; build-pipeline docs list 500 Starter minutes/month. Verify the account's Billing page because published allowance pages have varied. Exhausted hours suspend services until the next month. Without a payment method, bandwidth exhaustion suspends free services and build-minute exhaustion blocks builds; with billing enabled, overages can cost money. Do not add a payment method, accept a trial, or choose a paid plan without approval.
 
-No fixed expiry is stated for Free web services; the separate 30-day Free Postgres expiry is irrelevant here. Free services can restart and lose local files. WebSocket connections must handle reconnects after sleep/redeploy; actual Socket.IO behavior is future work.
+No fixed expiry is stated for Free web services; the separate 30-day Free Postgres expiry is irrelevant here. Free services can restart and lose local files. A Socket.IO round trip is verified below, but reconnects after sleep/redeploy remain untested.
 
 Official sources: [free limits](https://render.com/docs/free), [pricing](https://render.com/pricing), [pipeline minutes](https://render.com/docs/build-pipeline), [web services and HTTPS](https://render.com/docs/web-services), [WebSockets](https://render.com/docs/websocket), [Node versions](https://render.com/docs/node-version), [deploys](https://render.com/docs/deploys), [logs](https://render.com/docs/logging).
 
 ## Week 1 temporary Socket.IO connectivity spike
+
+Verified 2026-11-07: local enabled/disabled checks and public enabled/disabled checks passed. Final cloud state: **enabled** (`SOCKET_SPIKE_ENABLED=true`) on deployed source `bc1913bbf645e736a8948125c2c5f3c915d71317`, deploy `dep-dbnk02nf3r2c738sgig0` reported live. Both public test clients observed `websocket`. Physical-phone routing remains pending. Disable the flag after the intentional test window using the steps below.
 
 Base URL: `https://travelbuddy-api-uvpg.onrender.com` (local: `http://127.0.0.1:3000`). Socket.IO path: `/socket.io/`; default namespace `/`. Use a Socket.IO 4.x client, not a raw WebSocket client. This baseline locks both server and Node test client to 4.8.4. Socket.IO adds named events and its own protocol on top of transports; it can use WebSocket or HTTP polling. A connection alone does not prove which transport was used.
 

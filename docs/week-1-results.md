@@ -107,8 +107,6 @@ Expect 200/health JSON and 404/error JSON respectively, as specified in the cont
 - Service details confirm `autoDeploy=yes`, trigger `commit`, branch `main`; unskipped post-creation push behavior not exercised. Public-repository cloning alone does not prove a connected GitHub provider. Documentation-only publication uses `[skip render]` to preserve the live verified source; no duplicate deployment manually triggered.
 - No HTTP provider health-check path is configured (empty field); default TCP readiness is in use. `/health` was checked directly over HTTPS. No local servers or temporary test files remain.
 
-## Remaining scope and limitations
-
 ## Week 1 Socket.IO spike - 2026-11-07
 
 Starting commit `8c793a99c2a9dc3f0267ede130a86c7f017d4800`. Rechecked workspace, instructions, Git, contract, and existing Render service. Only original PDFs were untracked; none changed. No `mobile/` work performed.
@@ -129,6 +127,17 @@ Installed Socket.IO 4.8.4 (runtime) and socket.io-client 4.8.4 (development-only
 
 ### Deployed checks
 
-Pending deployment and the same public two-client check. These local Node connections are not two physical phones. Physical-phone send/receive in both directions remains **pending** Suryansh's evidence. Day 2 phone health confirmation is separate.
+- Normally pushed task-only source/docs/lockfile as `bc1913bbf645e736a8948125c2c5f3c915d71317`. Exact staging allowlist and basic credential-pattern review passed; real environment files, generated dependencies/cache, and original PDFs excluded.
+- Merged only `SOCKET_SPIKE_ENABLED` into the existing confirmed Render workspace/service; other environment settings preserved. The environment tool explicitly triggered builds. The first pre-push environment build used the prior commit; no new source deploy was observed from the push alone before the deliberate follow-up environment change. Do not claim webhook auto-deployment was proven.
+- Disabled deployment `dep-dbnjvds9v7es73d03reg` became `live` with exact commit `bc1913bbf645e736a8948125c2c5f3c915d71317` and flag false. Ran `npm run spike:check -- https://travelbuddy-api-uvpg.onrender.com --disabled`: exact health/404 passed; Socket.IO handshake returned JSON 404 and WebSocket connection was rejected.
+- Enabled deployment `dep-dbnk02nf3r2c738sgig0` became `live` with the same exact source and flag true. Ran `npm run spike:check -- https://travelbuddy-api-uvpg.onrender.com`: all assertions passed, exit 0.
+- Both public clients independently connected with distinct IDs, actual transports **A=websocket, B=websocket**. A sent `test-8823e4ea-f0fb-41ef-8483-d268d89f5e8f`; sender reply and peer broadcast matched the expected payload, whitespace trimmed and extra field omitted. All eight invalid cases got exact sender-only errors, with no extra replies/broadcasts or sender broadcast during the 750 ms observation.
+- Public `/health` remained HTTP 200 with exact JSON; unknown HTTP path remained JSON 404. Client sockets disconnected in finally cleanup. No local servers were left running.
+- Current cloud flag remains **true** for the intentional test window, while `.env.example` and unset local configuration default to disabled. Set false and deploy afterward; the disabled behavior has been tested locally and on this same source in the cloud. No paid hosting plan or new service was created.
+- Hosted application-log inspection filtered to `Spike` was attempted after the public round trip; Render again returned HTTP 503 (`failed to query loki: log retrieval is currently unavailable`). Hosted logs remain inaccessible through the integration. Local safe logging was observed; the remote routing proof comes from the client assertions and live deployment metadata, not fabricated log output.
 
-Database, authentication, OTP/application email delivery, Socket.IO, mobile builds, and two-device app tests are not implemented or tested. Free-tier sleep/reconnect behavior, exact account usage allowances/payment-method state, and actual cloud Node patch remain unverified. The working inbox/domain and collaborator agreement are Shreya's confirmations. No message or handoff has been sent to Suryansh. His work must wait for Shreya's explicit handoff.
+These automated Node connections are not two physical phones. Physical-phone send/receive in both directions remains **pending** Suryansh's evidence. Day 2 phone health confirmation is separate. Polling fallback, idle cold-start/reconnect, multi-instance routing, identity/permissions, persistence, deduplication, and production chat are not tested or implemented by this spike. See README's physical-phone checklist.
+
+## Remaining scope and limitations
+
+Database, authentication, OTP/application email delivery, production chat, mobile builds, and two-device app tests are not implemented or tested. Free-tier sleep/reconnect behavior, exact account usage allowances/payment-method state, and actual cloud Node patch remain unverified. The working inbox/domain and collaborator agreement are Shreya's confirmations. No message or handoff has been sent to Suryansh. His work must wait for Shreya's explicit handoff.
