@@ -109,4 +109,26 @@ Expect 200/health JSON and 404/error JSON respectively, as specified in the cont
 
 ## Remaining scope and limitations
 
+## Week 1 Socket.IO spike - 2026-11-07
+
+Starting commit `8c793a99c2a9dc3f0267ede130a86c7f017d4800`. Rechecked workspace, instructions, Git, contract, and existing Render service. Only original PDFs were untracked; none changed. No `mobile/` work performed.
+
+Installed Socket.IO 4.8.4 (runtime) and socket.io-client 4.8.4 (development-only); npm reported zero known vulnerabilities at install time. Updated npm lockfile. Existing middleware/health/error behavior retained; only one shared HTTP server listens. Added default-off flag, validation, sender echo, peer broadcast, safe connection/error logs, and reusable Node check.
+
+### Local checks actually performed
+
+- `node --check src/index.js` and `node --check scripts/check-spike.js` passed.
+- Enabled `SOCKET_SPIKE_ENABLED=true`, `PORT=3100`; started with `npm start`.
+- `npm run spike:check -- http://127.0.0.1:3100` passed exact HTTP health (200) and unknown JSON 404 checks.
+- Two independently connected clients had distinct socket IDs and observed transports **A=websocket, B=websocket** (WebSocket-only client configuration).
+- A sent `test-e434b9b8-d909-4910-8bb5-ccd8c0fe61b0`. A's echo and B's broadcast exactly matched expected trimmed/allowlisted payload; extra supplied field was absent.
+- Eight invalid payloads produced exact error objects. During the 750 ms observation, A had no broadcast and no extra reply; B had only the valid broadcast. No claim about absence outside that window.
+- Captured connection, disconnection, and validation rejection logs showed socket IDs and fixed categories, without message content.
+- Stopped that process; restarted same port with `SOCKET_SPIKE_ENABLED=false`. `npm run spike:check -- http://127.0.0.1:3100 --disabled` passed health/404, Socket.IO handshake JSON 404, and rejected WebSocket connection.
+- Both client sets disconnected; only our two local server sessions were stopped. No real `.env` created.
+
+### Deployed checks
+
+Pending deployment and the same public two-client check. These local Node connections are not two physical phones. Physical-phone send/receive in both directions remains **pending** Suryansh's evidence. Day 2 phone health confirmation is separate.
+
 Database, authentication, OTP/application email delivery, Socket.IO, mobile builds, and two-device app tests are not implemented or tested. Free-tier sleep/reconnect behavior, exact account usage allowances/payment-method state, and actual cloud Node patch remain unverified. The working inbox/domain and collaborator agreement are Shreya's confirmations. No message or handoff has been sent to Suryansh. His work must wait for Shreya's explicit handoff.

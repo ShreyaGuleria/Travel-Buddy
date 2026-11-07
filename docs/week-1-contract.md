@@ -1,4 +1,4 @@
-# Week 1 contract - Day 1 implemented subset
+# Week 1 contract - HTTP baseline and temporary Socket.IO spike
 
 ## Implemented locally
 
@@ -48,7 +48,7 @@ Parser errors occur before route lookup, so invalid JSON can produce 400 on an o
 
 ## Future plans - not implemented or verified
 
-The broader project proposes database storage, email OTP authentication, trip creation and matching, join requests, and participant chat. Socket.IO and mobile app connectivity remain future work. There are no usable endpoints or socket events for them yet; payloads must be agreed before implementation.
+The broader project proposes database storage, email OTP authentication, trip creation and matching, join requests, and participant chat. Production chat and mobile app integration remain future work. The temporary events below provide connectivity evidence only.
 
 ## Day 2 deployed contract
 
@@ -57,3 +57,20 @@ The same health and JSON 404 shapes are verified at `https://travelbuddy-api-uvp
 Planning rules from the proposal: joining initially creates a pending request; creator acceptance grants participation and consumes a seat. Trip times are intended to use absolute UTC timestamps, displayed in Asia/Kolkata. These are future product rules, not behavior of this server.
 
 Shreya confirmed the working test mailbox domain as `chitkara.edu.in`. This is user-confirmed mailbox information, not an implemented allowlist or proof of current enrollment. Actual OTP delivery and the complete domain policy remain to be tested/agreed.
+
+## Temporary Socket.IO spike - 2026-11-07
+
+One HTTP server and existing `PORT`; base `https://travelbuddy-api-uvpg.onrender.com`, path `/socket.io/`, namespace `/`. Compatible server/client major 4; tested package versions 4.8.4. Enabled only by exact string `SOCKET_SPIKE_ENABLED=true` at process startup. Otherwise no Socket.IO server/handshake or spike handlers are registered. Ordinary HTTP health/404 behavior remains unchanged when toggled.
+
+| Event | Direction and recipients | Payload / behavior |
+| --- | --- | --- |
+| `spike:echo` | Client -> server | Object with `messageId` and `text` |
+| `spike:echo:reply` | Server -> sender only | Validated, trimmed `{messageId, text}` |
+| `spike:message` | Server -> all other connected spike clients | Same validated payload; sender excluded |
+| `spike:error` | Server -> invalid sender only | `{"error":"invalid_payload","message":"Expected messageId (1-80) and text (1-500) as nonempty strings."}`; no reply/broadcast |
+
+Reject null, arrays, primitives, missing/non-string fields, whitespace-only fields, raw messageId over 80 or text over 500 UTF-16 code units. Both fields must have at least one non-whitespace character. Trim leading/trailing whitespace on accepted fields. Construct a fresh payload with only `messageId` and `text`; ignore extra input fields. No timestamp, identity, room, or persistence is implied. Duplicate IDs are not deduplicated. Disconnected clients miss broadcasts.
+
+Example: `{"messageId":"test-001","text":"Hello from phone A"}`. The sender gets `spike:echo:reply` and other connected clients get `spike:message`. This is public test broadcasting, with no authentication or private chat. CORS does not authenticate clients.
+
+The Node check runs from `server/` with `npm ci --include=dev` followed by `npm run spike:check -- <base-url>`; add `--disabled` for disabled checks. It forces WebSocket, prints observed transports, and uses timeouts/connection cleanup. Negative event observations are bounded to 750 ms. Physical-phone routing remains pending evidence from Suryansh; no mobile files are included.

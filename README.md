@@ -4,7 +4,7 @@ TravelBuddy is Shreya and Suryansh's campus travel coordination project, initial
 
 ## Current status
 
-Implemented: an Express API with JSON body parsing, a health endpoint, consistent JSON error responses, and startup/error logging, deployed on Render Free. No database, authentication, OTP delivery, Socket.IO, or mobile application is implemented here.
+Implemented: an Express API with JSON body parsing, a health endpoint, consistent JSON error responses, and startup/error logging, deployed on Render Free. An optional temporary Socket.IO connectivity spike is described below. Database, authentication, OTP delivery, production chat, and the mobile application remain future work.
 
 Shreya owns this backend/docs stage. Suryansh will create `mobile/` after the agreed handoff; that directory is deliberately absent today. Repository: https://github.com/ShreyaGuleria/Travel-Buddy/.
 
@@ -173,3 +173,62 @@ Render's Hobby workspace and Free web instance cost $0. The created service is c
 No fixed expiry is stated for Free web services; the separate 30-day Free Postgres expiry is irrelevant here. Free services can restart and lose local files. WebSocket connections must handle reconnects after sleep/redeploy; actual Socket.IO behavior is future work.
 
 Official sources: [free limits](https://render.com/docs/free), [pricing](https://render.com/pricing), [pipeline minutes](https://render.com/docs/build-pipeline), [web services and HTTPS](https://render.com/docs/web-services), [WebSockets](https://render.com/docs/websocket), [Node versions](https://render.com/docs/node-version), [deploys](https://render.com/docs/deploys), [logs](https://render.com/docs/logging).
+
+## Week 1 temporary Socket.IO connectivity spike
+
+Base URL: `https://travelbuddy-api-uvpg.onrender.com` (local: `http://127.0.0.1:3000`). Socket.IO path: `/socket.io/`; default namespace `/`. Use a Socket.IO 4.x client, not a raw WebSocket client. This baseline locks both server and Node test client to 4.8.4. Socket.IO adds named events and its own protocol on top of transports; it can use WebSocket or HTTP polling. A connection alone does not prove which transport was used.
+
+The spike is **off by default**. Only `SOCKET_SPIKE_ENABLED=true` creates the Socket.IO server and handlers. Missing, `false`, or other values leave them absent. After changing a value, restart locally or deploy the environment change on Render.
+
+### Local setup and reproducible check
+
+From the repository root:
+
+```powershell
+cd server
+npm ci --include=dev
+$env:SOCKET_SPIKE_ENABLED = 'true'
+npm start
+```
+
+In another terminal, from `server/`:
+
+```powershell
+npm run spike:check -- http://127.0.0.1:3000
+```
+
+Alternatively copy the safe example to `.env` only if no `.env` exists, set the flag there, and run `npm start`. A terminal variable overrides `.env`. The test client's `socket.io-client` dependency is development-only and is not needed by the hosted server.
+
+The check creates two independent clients, verifies HTTP health/404, sends a unique message, checks A's reply and B's broadcast, strips extra fields, rejects eight invalid inputs, and watches for unexpected events for 750 ms. Connections/events have 10-second timeouts; HTTP checks allow up to 90 seconds for an idle Free service to wake. Connections are always cleaned up; failed assertions exit nonzero. The check explicitly requests WebSocket only and prints the actual transport for both clients, so polling fallback cannot be mistaken for WebSocket success. Polling fallback/reconnect behavior is not tested.
+
+To disable locally: stop with Ctrl+C, set `$env:SOCKET_SPIKE_ENABLED = 'false'` (also update `.env` if used), and restart. Then:
+
+```powershell
+npm run spike:check -- http://127.0.0.1:3000 --disabled
+```
+
+This verifies normal HTTP behavior, a JSON 404 on the Socket.IO handshake path, and a rejected WebSocket connection. Stop the test server afterward. `Remove-Item Env:SOCKET_SPIKE_ENABLED` clears the terminal override; an enabled `.env` would then apply.
+
+### Hosted enable, check, and disable
+
+In the existing [service dashboard](https://dashboard.render.com/web/srv-dbn0avjm8hqs73bji2bg), open Environment. Add/update only `SOCKET_SPIKE_ENABLED` to `true`, preserve other settings, and select Save and deploy (or Save, rebuild, and deploy for changed source). Save only does not activate a new value. The source deployment must contain the spike before it can work. Our established commands and port stay unchanged.
+
+```powershell
+npm run spike:check -- https://travelbuddy-api-uvpg.onrender.com
+```
+
+After the test window, set `SOCKET_SPIKE_ENABLED=false` in Render and Save and deploy. Once live, run the same command with `--disabled`. Setting the flag locally does not change the cloud. The service is intended to stay enabled only for intentional connectivity tests; see results for its latest verified state.
+
+### Message flow and limits
+
+Express and Socket.IO share `createServer(app)`, and only that HTTP server calls `listen()` on the configured port. Express handles `/health` and ordinary unknown URLs; Socket.IO handles its reserved path and protocol. `express.json()` parses HTTP bodies, while Socket.IO decodes event payloads itself. Our event handler validates those payloads separately.
+
+Client A emits `spike:echo` with `{"messageId":"test-001","text":"Hello from phone A"}`. The server validates raw string lengths (messageId 1-80, text 1-500 JavaScript UTF-16 code units), rejects whitespace-only strings, trims them, and constructs a new object with only these fields. `socket.emit('spike:echo:reply', message)` replies to A; `socket.broadcast.emit('spike:message', message)` forwards to other connected clients, including B, excluding A. `io.emit` would include every client, so it is not used. Invalid input produces only `spike:error`; see the exact contract in `docs/week-1-contract.md`.
+
+This is an unauthenticated public broadcast test. No private rooms, identity checks, memberships, persistence, delivery guarantees, or production-chat security exist. Use synthetic text only. There is no permissive browser CORS configuration; CORS is a browser policy, not authentication. Node/native clients do not need a browser CORS policy for these tests. Logs contain only connection IDs and fixed failure categories, not message text or credentials.
+
+### Physical-phone checklist for Suryansh - pending
+
+After Shreya's explicit handoff, use compatible Socket.IO 4.x clients on both phones and ensure the hosted flag is enabled. Connect both to the public base URL with path `/socket.io/`. Send an identifiable synthetic message from A; capture its echo at A and `spike:message` with the same ID/text at B, without a sender broadcast at A. Reverse direction with a new ID. Record client versions, actual transports, IDs, and evidence from both phones. Disconnect both and disable the flag when finished. Two Node connections are not evidence of two physical phones; the Day 2 phone health check is not evidence of Socket.IO routing.
+
+References: [shared HTTP server](https://socket.io/docs/v4/server-initialization/), [broadcast recipients](https://socket.io/docs/v4/broadcasting-events/), [client transports/options](https://socket.io/docs/v4/client-options/).

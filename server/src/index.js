@@ -1,4 +1,6 @@
 import express from 'express';
+import { createServer } from 'node:http';
+import { Server } from 'socket.io';
 
 const portValue = process.env.PORT ?? '3000';
 const port = Number(portValue);
@@ -31,7 +33,46 @@ app.use((err, req, res, next) => {
   res.status(status).json({ error });
 });
 
-const server = app.listen(port, '0.0.0.0', () => {
+const server = createServer(app);
+
+if (process.env.SOCKET_SPIKE_ENABLED === 'true') {
+  const io = new Server(server, { serveClient: false });
+
+  io.on('connection', (socket) => {
+    console.log(`Spike connected: ${socket.id}`);
+
+    socket.on('spike:echo', (payload) => {
+      const validString = (value, max) =>
+        typeof value === 'string' && value.trim().length > 0 && value.length <= max;
+
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)
+        || !validString(payload.messageId, 80) || !validString(payload.text, 500)) {
+        console.warn(`Spike rejected invalid payload: ${socket.id}`);
+        socket.emit('spike:error', {
+          error: 'invalid_payload',
+          message: 'Expected messageId (1-80) and text (1-500) as nonempty strings.',
+        });
+        return;
+      }
+
+      const message = { messageId: payload.messageId.trim(), text: payload.text.trim() };
+      socket.emit('spike:echo:reply', message);
+      socket.broadcast.emit('spike:message', message);
+    });
+
+    socket.on('disconnect', () => console.log(`Spike disconnected: ${socket.id}`));
+    socket.on('error', () => console.error(`Spike socket error: ${socket.id}`));
+  });
+
+  io.engine.on('connection_error', (err) => {
+    console.error(`Spike connection error (code ${err.code}).`);
+  });
+  console.log('Temporary public Socket.IO spike enabled; use test data only.');
+} else {
+  console.log('Socket.IO spike disabled.');
+}
+
+server.listen(port, '0.0.0.0', () => {
   console.log(`TravelBuddy API listening on 0.0.0.0:${port}`);
 });
 

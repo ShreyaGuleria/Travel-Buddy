@@ -28,7 +28,7 @@ Shreya confirmed that both collaborators have repository access, Suryansh will w
 - Does the student email policy need additional domains or enrollment checks? Mailbox access alone does not establish enrollment.
 - Which email sender should be used? Render Free was selected for Day 2; application email delivery is not tested.
 - Use the verified public Render HTTPS API address for later device integration; actual mobile app integration remains future work.
-- What should the later Socket.IO test event and access rules be?
+- Temporary Socket.IO events are now agreed below; production chat permissions and identity remain future decisions.
 - Shreya must explicitly hand off after the baseline is available; a successful push alone does not authorize Suryansh to start.
 
 ## Day 2 hosting decision - 2026-11-06
@@ -50,3 +50,13 @@ Official sources checked: [Render free](https://render.com/docs/free), [pricing]
 
 - Node.js release status: https://github.com/nodejs/Release#release-schedule
 - Built-in environment file loading: https://nodejs.org/docs/latest-v24.x/api/cli.html#--env-file-if-existsfile
+
+## Temporary connectivity spike - 2026-11-07
+
+- Use Socket.IO 4.8.4 on the existing HTTP server/port; create the HTTP server explicitly and attach both Express and Socket.IO. No extra listener, framework, room abstraction, or mobile app.
+- Use Socket.IO client 4.8.4 as a dev dependency for a reusable two-connection Node check. Force WebSocket and record the actual transport; do not equate connection success with a tested transport or physical phones.
+- Default off; exact `SOCKET_SPIKE_ENABLED=true` enables only the temporary test. Keep false outside an intentional test window. Host flag will be enabled for deployed connectivity verification and remains a nonsecret service setting until deliberately disabled/redeployed.
+- Require object/string payload fields; raw limits 80/500 UTF-16 code units, reject whitespace-only, trim accepted values, and emit only two expected fields. No data is saved or treated as identity.
+- Reply with `socket.emit`, broadcast to peers with `socket.broadcast.emit`, never broadcast to the sender. Invalid payloads produce only the documented sender error. Logs omit message text and credentials.
+- Do not add browser CORS wildcard settings; the Node check/native-device workflow does not need them. CORS is not authentication. The enabled endpoint is public and must receive only synthetic test data.
+- Server remains one Free Render instance. Sleep, reconnect, polling fallback, scaling, delivery guarantees, private chat, and two physical-phone routing are not established by this spike. Disable by setting the flag false and deploying; do not remove middleware or change health shapes.
